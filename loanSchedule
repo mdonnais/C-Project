@@ -1,0 +1,749 @@
+#include <iostream>
+#include <cmath>
+#include <fstream>
+#include<limits>
+#include <sstream>
+
+using namespace std;
+
+
+
+
+// Validation methods
+
+double checkR(double y){
+
+    while ((cin.fail()) || (y<0) || (y >1))
+    {
+        cin.clear();
+        cin.ignore();
+        cout << "Invalid input. ";
+        cout << "In most cases, the interest rate is a number between 0 and 1, please input again : " << endl;
+        cin >> y;
+        cout<<"\n";
+    }
+    return y;
+}
+
+double checkPMT(double y, double z){
+
+    if (z==0) {
+        while ((cin.fail()) || (y < 0)) {
+            cin.clear();
+            cin.ignore();
+            cout << "Invalid input. ";
+            cout << "The instalment can not be a negative number " << endl;
+            cout << "Enter the instalment again: " << endl;
+            cin >> y;
+            cout << "\n";
+        }
+    }
+
+    if (z>0) {
+
+        while ((cin.fail()) || (y < 0) || (y > z)) {
+            cin.clear();
+            cin.ignore();
+            cout << "Invalid input. ";
+            cout << "The instalment can not be a negative number, " << endl;
+            cout << "and it cannot be greater than the total amount borrowed." << endl;
+            cout << "Enter the instalment again: " << endl;
+            cin >> y;
+            cout << "\n";
+        }
+
+    }
+
+    return y;
+}
+
+double checkPV(double x){
+
+    while ((cin.fail()) || (x<0) )
+    {
+        cin.clear();
+        cin.ignore();
+        cout << "Invalid input. ";
+        cout << "The total amount borrowed can not be a negative number, " << endl;
+        cout << "Enter the total amount borrowed again: " << endl;
+        cin >> x;
+        cout<<"\n";
+    }
+    return x;
+}
+
+double checkPVAR(double x){
+
+    while ((cin.fail()) || (x<0) )
+    {
+        cin.clear();
+        cin.ignore();
+        cout << "Invalid input. ";
+        cout << "The desired standard deviation can not be a negative number, " << endl;
+        cout << "please input it again: " << endl;
+        cin >> x;
+        cout<<"\n";
+    }
+    return x;
+}
+
+double checkPMEAN(double x){
+
+    while ((cin.fail()) || (x<0) || (x >1))
+    {
+        cin.clear();
+        cin.ignore();
+        cout << "Invalid input. ";
+        cout << "The desired mean is a rate and thus must be number between 0 and 1, " << endl;
+        cout << "please input it again: " << endl;
+        cin >> x;
+        cout<<"\n";
+    }
+    return x;
+}
+
+int checkN(int x){
+
+    while ((cin.fail()) || (x<0) )
+    {
+        cin.clear();
+        cin.ignore();
+        cout << "Invalid input. ";
+        cout << "You must enter an integer " << endl;
+        cout << "Enter the number of periods again: " << endl;
+        cin >> x;
+        cout<<"\n";
+    }
+    return x;
+}
+
+int checkChoice1(int x){
+
+    while ((cin.fail()) || ((x!=1)&&(x!=2)) )
+    {
+        cin.clear();
+        cin.ignore();
+        cout << "Invalid input. " << endl;
+        cout << "You must enter 1 or 2 only."<< endl;
+        cout << "Type 1 for Fixed principal payments and type 2 for"
+                " fixed interest rate and instalments  "<< endl;
+        cin >> x;
+        cout<<"\n";
+    }
+    return x;
+}
+
+int checkChoice2(int x){
+
+    while ((cin.fail()) || ((x!=1)&&(x!=2)) )
+    {
+        cin.clear();
+        cin.ignore();
+        cout << "Invalid input. " << endl;
+        cout << "You must enter 1 or 2 only."<< endl;
+        cout << "type 1 for fixed interest rate or type "
+        "2 for floating interest rate" << endl;
+        cin >> x;
+        cout<<"\n";
+    }
+    return x;
+}
+
+int checkFrequency(int x){
+
+    while ((cin.fail()) || ((x!=1)&&(x!=2)&&(x!=4)&&(x!=12)))
+    {
+        cin.clear();
+        cin.ignore();
+        cout << "Invalid input. " << endl;
+        cout << "You must enter 1 or 2 or 4 or 12 only."<< endl;
+        cout << "Please write 1 for yearly, write 2 for semi-annually,"
+                "write 4 for quarterly, write 12 for monthly" << endl ;
+        cin >> x;
+        cout<<"\n";
+    }
+    return x;
+}
+
+int checkMonth(int x){
+
+    while ((cin.fail()) || (x<1) || (x >12) ) {
+        cin.clear();
+        cin.ignore();
+        cout << "Invalid input. " << endl;
+        cout << "You must enter a month." << endl;
+        cout << "Please enter a number between 1 and 12" << endl;
+        cin >> x;
+        cout << "\n";
+    }
+    return x;
+}
+
+int checkYear(int x){
+
+    while ((cin.fail()) || (x<2019) ) {
+        cin.clear();
+        cin.ignore();
+        cout << "Well, maybe you are living in the past " << endl;
+        cout << "Please enter a year greater or equal to 2019" << endl;
+        cin >> x;
+        cout << "\n";
+    }
+    return x;
+}
+
+
+
+//  Functions to compute values
+
+
+double f(double PMT, double PV, int n, double r) {
+    double temp;
+    temp = r*(1+ (1/((pow(1+r, n)-1)))) - (PMT / PV);
+    return temp;
+}
+
+double boxMuller (double pmean, double pvar){
+
+    double x, y, s, z, p;
+    do {
+
+        x = ((double)rand()*2 / RAND_MAX)-1;
+        y = ((double)rand()*2 / RAND_MAX)-1;
+        s =  x*x + y*y;
+    } while (s>1);
+    z = x * sqrt(-2*log(s)/s);
+    p = sqrt(pvar)*z+pmean;
+    return p;
+
+}
+
+
+//Loan payment functions
+
+
+void loanPaymentScheduleFPP_FixedRate(double PV, double r, int n, int d ) {
+
+    //ENTERING VALUES
+
+    cout << "Wonderful ! You have chosen the fixed interest rate. We will now build the schedule " << endl;
+    cout << "You need to enter the desired number of period for the loan : " << endl;
+    cin >> n;
+    n = checkN(n);
+    cout << "Now, you need to enter the interest rate in YEARLY TERMS : " << endl;
+    cin >> r;
+    r = checkR(r);
+    cout << "So the interest rate is : " << r << endl;
+    cout << "What is the frequency of payments ? "
+            "Please write 1 for yearly, write 2 for semi-annually,"
+            "write 4 for quarterly, write 12 for monthly" << endl;
+    cin >> d;
+    r /= d;
+    d = checkFrequency(d);
+    cout << "Please enter the total amount of money you want to borrow: " << endl;
+    cin >> PV;
+    PV = checkPV(PV);
+    cout << "So the total amount borrowed is : " << PV << endl;
+
+    //BUILDING THE SCHEDULE
+
+    int t, month, year;
+
+    cout << "When do you want to start the loan ? Please enter the month : " << endl;
+    cin >> month;
+    month = checkMonth(month);
+    cout << "Please enter the year : " << endl;
+    cin >> year;
+    year = checkYear(year);
+    t = 12/d;
+
+    double Principal;
+    Principal = PV / n;
+    double arrayInstalment[n];
+    double arrayOpeningBalance[n];
+    double arrayClosingBalance[n];
+    double arrayPeriodicRate[n];
+    double arrayInterest[n];
+    double arrayPrincipal[n];
+    double arrayPeriod[n];
+    std::ofstream myFile;
+    myFile.open("loanSchedule.csv");
+    myFile << "period #, date, opening balance, principal, periodic interest rate, interest, instalment, closing balance" << endl;
+
+
+    for (int i = 0; i < n; i++) {
+
+        arrayPeriod[i] = i+1;
+        arrayPrincipal[i] = Principal;
+        arrayPeriodicRate[i] = r;
+        if (i==0){
+            arrayOpeningBalance[i] = PV;
+            arrayInterest[i] = r*arrayOpeningBalance[i];
+            arrayInstalment[i] = arrayInterest[i] +arrayPrincipal[i];
+            arrayClosingBalance[i] = arrayOpeningBalance[i] - arrayPrincipal[i];
+            stringstream concatenation;
+            string date;
+
+            concatenation << month << "/" << year;
+
+            date = concatenation.str();
+            myFile << arrayPeriod[i] << ","<< date << "," << arrayOpeningBalance[i]<< "," << arrayPrincipal[i] << "," << arrayPeriodicRate[i] << "," << arrayInterest[i] << "," << arrayInstalment[i] << "," << arrayClosingBalance[i] << endl;
+
+
+        }
+        else {
+            arrayOpeningBalance[i] = arrayClosingBalance[i-1];
+            arrayInterest[i] = r*arrayOpeningBalance[i];
+            arrayInstalment[i] = arrayInterest[i] +arrayPrincipal[i];
+            arrayClosingBalance[i] = arrayOpeningBalance[i] - arrayPrincipal[i];
+            if ((month+t)>12)
+            {
+                year += 1;
+                month = month + t - 12;
+
+            }
+            else {
+                month +=t;
+
+            }
+
+            stringstream concatenation;
+            string date;
+
+            concatenation << month << "/" << year;
+
+            date = concatenation.str();
+
+            myFile << arrayPeriod[i] << ","<<  date << "," << arrayOpeningBalance[i]<< "," << arrayPrincipal[i] << "," << arrayPeriodicRate[i] << "," << arrayInterest[i] << "," << arrayInstalment[i] << "," << arrayClosingBalance[i] << endl;
+
+
+        }
+
+
+
+
+
+
+    }
+
+
+
+
+}
+
+
+void loanPaymentScheduleFPP_FloatingRate(double PV, double Mr, int n, double pmean, double pvar, double d){
+
+    // ENTERING VALUES
+
+    cout << "Wonderful ! You have chosen the floating interest rate. We will now build the schedule " << endl;
+    cout << "You need to enter the desired number of period for the loan : " << endl;
+    cin >> n;
+    n = checkN(n);
+    cout << "Now, you need to enter the margin rate : " << endl;
+    cin >> Mr;
+    Mr = checkR(Mr);
+    cout << "So the Margin rate is: " << Mr << endl;
+    cout << "What is the frequency of payments ? "
+            "Please write 1 for yearly, write 2 for semi-annually,"
+            "write 4 for quarterly, write 12 for monthly" << endl;
+    cin >> d;
+    d = checkFrequency(d);
+
+    cout << "To compute the floating part, we need to simulate a Normal random variable."
+            "Thus, you need to enter the desired floating rate mean : " << endl;
+    cin >> pmean;
+    pmean = checkPMEAN(pmean);
+    cout << "So the desired mean is: " << pmean << endl;
+    cout << "Now, please input the desired standard deviation:  " << endl;
+    cin >> pvar;
+    pvar = checkPVAR(pvar);
+    pvar = pvar * pvar;
+    cout << "Please enter the total amount of money you want to borrow: " << endl;
+    cin >> PV;
+    PV = checkPV(PV);
+    cout << "So the total amount borrowed is : " << PV << endl;
+
+
+
+    //BUILDING THE SCHEDULE
+    int t, month, year;
+
+    cout << "When do you want to start the loan ? Please enter the month : " << endl;
+    cin >> month;
+    month = checkMonth(month);
+    cout << "Please enter the year : " << endl;
+    cin >> year;
+    year = checkYear(year);
+    t = 12/d;
+
+    double Principal;
+    Principal = PV / n;
+    cout << "The amount of the principal is :" << Principal << endl;
+    double arrayInstalment[n];
+    double arrayOpeningBalance[n];
+    double arrayClosingBalance[n];
+    double arrayFloatingRate[n];
+    double arrayPeriodicRate[n];
+    double arrayInterest[n];
+    double arrayPeriod[n];
+    double arrayPrincipal[n];
+    std::ofstream myFile;
+    myFile.open("loanSchedule.csv");
+    myFile << "period #, date, opening balance, principal, floating rate, periodic rate, interest, instalment, closing balance" << endl;
+
+    for (int i = 0; i < n; i++) {
+
+        arrayPeriod[i] = i+1;
+
+        if (i==0){
+            arrayOpeningBalance[i] = PV;
+            arrayPrincipal[i] = Principal;
+            arrayFloatingRate[i] = boxMuller(pmean, pvar);
+            arrayPeriodicRate[i] = (Mr +  arrayFloatingRate[i])/d;
+            arrayInterest[i] = arrayPeriodicRate[i] * arrayOpeningBalance[i];
+            arrayInstalment[i] = arrayInterest[i] +arrayPrincipal[i];
+            arrayClosingBalance[i] = arrayOpeningBalance[i] - arrayPrincipal[i];
+            stringstream concatenation;
+            string date;
+
+            concatenation << month << "/" << year;
+
+            date = concatenation.str();
+
+
+            myFile << arrayPeriod[i] << "," << date << "," << arrayOpeningBalance[i]<< "," << arrayPrincipal[i] << ","<< arrayFloatingRate[i] << "," << arrayPeriodicRate[i] << "," << arrayInterest[i] << "," << arrayInstalment[i] << "," << arrayClosingBalance[i] << endl;
+        }
+        else {
+            arrayOpeningBalance[i] = arrayClosingBalance[i-1];
+            arrayPrincipal[i] = Principal;
+            arrayFloatingRate[i] = boxMuller(pmean, pvar);
+            arrayPeriodicRate[i] = (Mr +  arrayFloatingRate[i])/d;
+            arrayInterest[i] = arrayPeriodicRate[i] * arrayOpeningBalance[i];
+            arrayInstalment[i] = arrayInterest[i] +arrayPrincipal[i];
+            arrayClosingBalance[i] = arrayOpeningBalance[i] - arrayPrincipal[i];
+
+            if ((month+t)>12)
+            {
+                year += 1;
+                month = month + t - 12;
+
+            }
+            else {
+                month +=t;
+
+            }
+
+            stringstream concatenation;
+            string date;
+
+            concatenation << month << "/" << year;
+
+            date = concatenation.str();
+
+            myFile << arrayPeriod[i] << "," << date << "," << arrayOpeningBalance[i]<< "," << arrayPrincipal[i] << ","<< arrayFloatingRate[i] << "," << arrayPeriodicRate[i] << "," << arrayInterest[i] << "," << arrayInstalment[i] << "," << arrayClosingBalance[i] << endl;
+        }
+
+    }
+
+}
+
+void loanPaymentScheduleFIR(double PMT, double PV, double r, int n, int d){
+
+    cout << "Well ! So, your type of loan is Fixed interest rate and instalments"<< endl;
+    cout << "For this type of loan, we need 4 parameters. I need you to enter only 3 parameters, "
+            "and enter 0 for the missing parameter" << endl;
+
+
+    //ENTERING THE VALUES
+
+    cout << "What is the number of periods of the loan n : " << endl;
+    cin >> n;
+    n = checkN(n);
+
+
+    // We only want 3 variables, thus one and only one variable needs to be equal to 0
+
+
+    if ((n==0)) {
+        cout << "The number of periods is the missing value. " << endl;
+        cout << "The other variables must be strictly positive numbers. " << endl;
+        do {
+            cout << "Please enter only strictly positive numbers. " << endl;
+            cout << "Please provide the interest rate in YEARLY TERMS" << endl;
+            cin >> r;
+            r = checkR(r);
+            cout << "Please provide the total amount of the loan: " << endl;
+            cin >> PV;
+            PV = checkPV(PV);
+            cout << "Please provide the instalment amount : " << endl;
+            cin >> PMT;
+            PMT = checkPMT(PMT, PV);
+
+        } while ((r==0) || (PV==0) ||(PMT==0));
+
+    }
+
+    if (n>0){
+
+        cout << "Please provide the interest rate in YEARLY TERMS" << endl;
+        cin >> r;
+        r = checkR(r);
+        if (r==0){
+            cout << "The interest rate is the missing value. " << endl;
+            cout << "The other variables must be strictly positive numbers. " << endl;
+            do {
+                cout << "Please enter only strictly positive numbers. " << endl;
+                cout << "Please provide the total amount of the loan: " << endl;
+                cin >> PV;
+                PV = checkPV(PV);
+                cout << "Please provide the instalment amount : " << endl;
+                cin >> PMT;
+                PMT = checkPMT(PMT, PV);
+
+            } while ((PV==0) || (PMT==0));
+        }
+        if (r>0){
+            cout << "Please provide the total amount of the loan: " << endl;
+            cin >> PV;
+            PV = checkPV(PV);
+            if (PV==0){
+                cout << "The total amount borrowed is the missing value. " << endl;
+
+                cout << "The instalment must be strictly positive . " << endl;
+                do {
+                    cout << "Please provide the instalment amount : " << endl;
+                    cin >> PMT;
+                    PMT = checkPMT(PMT, PV);
+                } while (PMT==0);
+
+            }
+            if (PV>0){
+                cout << "The instalment amount is the missing value. " << endl;
+                PMT = 0;
+
+            }
+
+        }
+
+
+
+    }
+
+    cout << "What is the frequency of payments ? "<< endl;
+    cout << "Please 1 for yearly, write 2 for semi-annually,"
+            "write 4 for quarterly, write 12 for monthly : "<< endl;
+    cin >> d;
+    d = checkFrequency(d);
+
+    // FINDING THE MISSING PARAMETER
+
+
+    if (PMT==0) {
+        r /= d;
+        PMT = PV * r*(1+ (1/((pow(1+r, n)-1))));
+        cout << "Then PMT is equal to :" << PMT << endl;
+    }
+
+    else if (r==0){
+
+        double a, b, precision,m, fm, fa,fb;
+        precision = 0.0001;
+        a= 0.00001;
+        b=1;
+        fa = f(PMT, PV, n,a);
+        fb = f(PMT, PV, n,b);
+
+        while ( b-a > precision ) {
+            m = (b + a) / 2;
+            fm = f(PMT, PV, n, m);
+            if (fm == 0) break;
+
+            if (fa * fm < 0) {
+                b = m;
+                fb = fm;
+            } else {
+                a = m;
+                fa = fm;
+
+            }
+        }
+
+
+
+        r = m;
+
+
+        r = floor((r*100)+0.5);
+        r /= 100;
+
+        cout << "BINARY SEARCH: " << endl;
+        cout << "Then r is equal to:" << r*d << endl;
+
+
+    }
+
+    else if (PV==0){
+        r /= d;
+        PV = PMT / (r*(1+ (1/((pow(1+r, n)-1)))));
+        cout << "Then PV is equal to :" << PV << endl;
+
+    }
+
+    else {
+        r /= d;
+        n = log( 1 + (1/ ((1/r)*(PMT/PV)-1)))/log(1+r);
+        cout << "Then n is equal to :" << n << endl;
+    }
+
+    // BUILDING THE SCHEDULE
+
+
+    int t, month, year;
+
+    cout << "When do you want to start the loan ? Please enter the month : " << endl;
+    cin >> month;
+    month = checkMonth(month);
+    cout << "Please enter the year : " << endl;
+    cin >> year;
+    year = checkYear(year);
+    t = 12/d;
+    double arrayInstalment[n];
+    double arrayOpeningBalance[n];
+    double arrayClosingBalance[n];
+    double arrayPeriodicRate[n];
+    double arrayInterest[n];
+    double arrayPrincipal[n];
+    double arrayPeriod[n];
+    std::ofstream myFile;
+    myFile.open("loanSchedule.csv");
+    myFile << "period #,date, opening balance, principal, periodic interest rate, interest, instalment, closing balance" << endl;
+
+    for (int i=0; i<n; i++){
+        arrayPeriod[i] = i+1;
+        arrayInstalment[i] = PMT;
+        arrayPeriodicRate[i] = r;
+
+
+        if (i==0){
+            arrayOpeningBalance[i] = PV;
+
+            stringstream concatenation;
+            string date;
+
+            concatenation << month << "/" << year;
+
+            date = concatenation.str();
+
+            arrayInterest[i] = r * arrayOpeningBalance[i];
+            arrayPrincipal[i] = PMT - arrayInterest[i];
+            arrayClosingBalance[i] = arrayOpeningBalance[i] - arrayPrincipal[i];
+
+            myFile << arrayPeriod[i] << ","<< date << "," << arrayOpeningBalance[i]<< "," << arrayPrincipal[i] << "," << arrayPeriodicRate[i] << "," << arrayInterest[i] << "," << arrayInstalment[i] << "," << arrayClosingBalance[i] << endl;
+
+
+
+        }
+        else {
+            arrayOpeningBalance[i] = arrayClosingBalance[i-1];
+            if ((month+t)>12)
+            {
+                year += 1;
+                month = month + t - 12;
+
+            }
+            else {
+                month +=t;
+
+            }
+
+
+            stringstream concatenation;
+            string date;
+
+            concatenation << month << "/" << year;
+
+            date = concatenation.str();
+
+            arrayInterest[i] = r * arrayOpeningBalance[i];
+            arrayPrincipal[i] = PMT - arrayInterest[i];
+            arrayClosingBalance[i] = arrayOpeningBalance[i] - arrayPrincipal[i];
+
+            myFile << arrayPeriod[i] << ","<<  date << "," << arrayOpeningBalance[i]<< "," << arrayPrincipal[i] << "," << arrayPeriodicRate[i] << "," << arrayInterest[i] << "," << arrayInstalment[i] << "," << arrayClosingBalance[i] << endl;
+
+        }
+
+    }
+
+}
+
+
+
+
+
+
+int main () {
+
+    double r,PMT, PV, Mr, pmean, pvar;
+    int C,d,n;
+
+    cout << "Welcome to Sorbone's International Bank." << endl;
+    cout << "Are you interested in a bank loan ? " << endl;
+    cout << "What type of loan do you want ?" << endl;
+    cout << "Type 1 for Fixed principal payments and type 2 for fixed interest rate and instalments " << endl;
+    cin >> C;
+
+    C = checkChoice1(C);
+
+
+    if (C==1){
+
+        int C1;
+
+        cout << "Well ! So, your type of loan is Fixed principal payments. "
+                "Now your must decide whether you want a fixed interest rate or a floating interest rate."<< endl;
+        cout << "You don't know what to choose ? Hum. Let me help you." << endl;
+        cout << "If you are planning on taking a loan for a long period (more than a year), "
+                "then a floating interest rate is better. " << endl;
+        cout << "It protects you from interest rate risk. Otherwise you should take a fixed interest rate." << endl;
+        cout << "I hope it helped you make your choice. Now, type 1 for fixed interest rate or type "
+                "2 for floating interest rate  " << endl;
+        cin >> C1;
+        C1 = checkChoice2(C1);
+
+        if (C1 ==1){
+
+            loanPaymentScheduleFPP_FixedRate(PV,r,n,d);
+
+        }
+
+        if (C1 ==2) {
+
+            loanPaymentScheduleFPP_FloatingRate(PV,Mr,n, pmean, pvar, d);
+
+        }
+
+    }
+
+    if (C==2) {
+
+        loanPaymentScheduleFIR(PMT, PV,r,n,d);
+
+    }
+ cout << "The program created a CSV file named loanSchedule. You can find it in the same folder as the one "
+         "where this program is saved." << endl;
+ cout << " Have a nice day, goodbye !" << endl;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
